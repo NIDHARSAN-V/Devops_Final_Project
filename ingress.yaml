@@ -1,0 +1,25 @@
+kind: Ingress
+metadata:
+  name: mern-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2  # Rewrite rule for URL
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"  # CORS configuration
+spec:
+  ingressClassName: nginx  # Specifies the Ingress controller to use (Nginx in this case)
+  rules:  # Use *.localhost for local testing (or update with your domain)
+    - http:
+        paths:
+          - path: "/back(/|$)(.*)"  # API requests will be routed to the backend service
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: mern-backend-service
+                port:
+                  number: 5000
+          - path: "/()(.*)"  # All other requests will be routed to the frontend service
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: mern-frontend-service
+                port:
+                  number: 80

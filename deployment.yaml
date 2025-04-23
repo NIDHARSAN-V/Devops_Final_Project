@@ -1,0 +1,107 @@
+# Frontend ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+data:
+  VITE_CURRENCY: "$"
+  VITE_BACKEND_URL: "/back"
+
+---
+# Backend ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+data:
+  NODE_ENV: "production"
+  PORT: "5000"
+  SELLER_EMAIL: "admin@gmail.com"
+  SELLER_PASSWORD: "admin"
+  JWT_SECRET: "secret#text"
+  MONGODB_URI: "mongodb+srv://ragu16102004:Yd94MODadQFeBbdz@grocery.aeinltr.mongodb.net/?retryWrites=true&w=majority&appName=Grocery"
+  CLOUDINARY_CLOUD_NAME: "dwuvnodzj"
+  CLOUDINARY_API_KEY: "315475771654615"
+  CLOUDINARY_API_SECRET: "fjkGJH7URUDrparrAVHXo6zP-Ls"
+  STRIPE_PUBLISHABLE_KEY: "pk_test_51RCilVFMlnntczrRXcaX9jhI2W8GmA5NuPFnmNEn9VWrD3siDOlhYbw30EYvyyl22LTn3uQY8kRc1pxawMbQI2sL00Y6pgPGLy"
+  STRIPE_SECRET_KEY: "sk_test_51RCilVFMlnntczrRNYcLga5Ekgb3jxB7pIsLsA0l6yLI8T9ha4sUAXFtNxQTZRcTvsp24zvUQAgDN69ijJ2pWSWe00THbLr5NA"
+  STRIPE_WEBHOOK_SECRET: "-------"
+
+---
+# Frontend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mern-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mern-frontend
+  template:
+    metadata:
+      labels:
+        app: mern-frontend
+    spec:
+      containers:
+      - name: mern-frontend
+        image: nidharsan8008/final_react_app:latest
+        ports:
+        - containerPort: 5173
+        envFrom:
+        - configMapRef:
+            name: frontend-config
+
+---
+# Backend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mern-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mern-backend
+  template:
+    metadata:
+      labels:
+        app: mern-backend
+    spec:
+      containers:
+      - name: mern-backend
+        image: nidharsan8008/final_node_app:latest
+        ports:
+        - containerPort: 5000
+        envFrom:
+        - configMapRef:
+            name: backend-config
+
+---
+# Backend Service (ClusterIP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: mern-backend-service
+spec:
+  type: ClusterIP
+  selector:
+    app: mern-backend
+  ports:
+    - port: 5000
+      targetPort: 5000
+
+---
+# Frontend Service (NodePort)
+apiVersion: v1
+kind: Service
+metadata:
+  name: mern-frontend-service
+spec:
+  type: NodePort
+  selector:
+    app: mern-frontend
+  ports:
+    - port: 80
+      targetPort: 5173
+      nodePort: 30005
