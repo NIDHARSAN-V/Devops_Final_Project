@@ -34,12 +34,12 @@ app.use(express.json());
 app.use(cookieParser());
 
 
-app.use((req, res, next) => {
-  if (req.path.startsWith('/back')) {
-    req.url = req.url.replace('/back', '/api'); // Rewrite path
-  }
-  next();
-});
+// app.use((req, res, next) => {
+//   if (req.path.startsWith('/back')) {
+//     req.url = req.url.replace('/back', '/api'); // Rewrite path
+//   }
+//   next();
+// });
 
 
 
