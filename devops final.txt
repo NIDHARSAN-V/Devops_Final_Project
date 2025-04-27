@@ -1,0 +1,79 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Clone Git Repository') {
+            steps {
+                git 'https://github.com/NIDHARSAN-V/Devops_Final_Project.git'
+            }
+        }
+
+        stage('Build Docker Front Image') {
+            steps {
+                script {
+                    sh 'docker build -t final_react_app ./client'
+                    sh 'docker tag final_react_app:latest nidharsan8008/final_react_app:latest'
+                }
+            }
+        }
+
+        stage('Build Docker Backend Image') {
+            steps {
+                script {
+                    sh 'docker build -t final_node_app ./server'
+                    sh 'docker tag final_node_app:latest nidharsan8008/final_node_app:latest'
+                }
+            }
+        }
+
+        stage('Push to Docker Hub Front end') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'dockerhub_token', url: 'https://index.docker.io/v1/') {
+                        sh 'docker push nidharsan8008/final_react_app:latest'
+                    }
+                }
+            }
+        }
+
+        stage('Push to Docker Hub Back end') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'dockerhub_token', url: 'https://index.docker.io/v1/') {
+                        sh 'docker push nidharsan8008/final_node_app:latest'
+                    }
+                }
+            }
+        }
+        
+        
+        
+         stage('Miniukbe starting') {
+            steps {
+                script {
+                    sh 'minikube start'
+                }
+            }
+        }
+
+        stage('Deploy with deployment.yml and ingress.yaml') {
+             steps {
+                withKubeConfig(caCertificate: '', clusterName: 'minikube ', contextName: 'minikube', credentialsId: 'MiniKube_ID', namespace: '', restrictKubeConfigAccess: false, serverUrl: 'https://192.168.49.2:8443') {
+                         sh 'kubectl apply -f deployment.yaml'
+                         sh 'kubectl apply -f ingress.yaml'
+                         sh 'kubectl get pods'
+                         sh 'kubectl get svc'
+                         sh 'kubectl get ingress'
+                         sh 'minikube service ingress-nginx-controller -n ingress-nginx'
+                 }
+            }
+        }
+        
+        
+         stage('Minikube ingress servicing') {
+            steps {
+                sh 'minikube service ingress-nginx-controller -n ingress-nginx'
+            }
+        }
+    }
+}
